@@ -1,13 +1,10 @@
 export interface Note {
-  id: string;
+  id: number;
   title: string;
   content: string;
   tag: string;
-}
-
-export interface NoteTag {
-  id: string;
-  name: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FetchNotesResponse {

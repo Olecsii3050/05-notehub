@@ -4,11 +4,13 @@ import css from "./Pagination.module.css";
 interface PaginationProps {
   pageCount: number;
   onPageChange: (selectedPage: number) => void;
+  currentPage: number;
 }
 
 export default function Pagination({
   pageCount,
   onPageChange,
+  currentPage,
 }: PaginationProps) {
   return (
     <ReactPaginate
@@ -22,6 +24,7 @@ export default function Pagination({
       containerClassName={css.pagination}
       activeClassName={css.active}
       disabledClassName={css.disabled}
+      forcePage={currentPage}
     />
   );
 }

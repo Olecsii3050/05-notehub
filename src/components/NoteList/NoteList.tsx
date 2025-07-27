@@ -1,18 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import css from "./NoteList.module.css";
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  tag: string;
-}
+import type { Note } from "../../types/note";
 
 interface NoteListProps {
   searchTerm: string;
   setPageCount: (count: number) => void;
   currentPage: number;
   notesPerPage: number;
+  notes: Note[];
 }
 
 const fetchNotes = async (searchTerm: string): Promise<Note[]> => {
@@ -44,9 +39,12 @@ export default function NoteList({
   setPageCount,
   currentPage,
   notesPerPage,
+  notes,
 }: NoteListProps) {
+  const queryClient = useQueryClient();
+
   const {
-    data: notes,
+    data: fetchedNotes,
     isLoading,
     error,
   } = useQuery({
@@ -55,8 +53,8 @@ export default function NoteList({
     enabled: !!searchTerm,
   });
 
-  const handleDelete = async (id: string) => {
-    try {
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
       const response = await fetch(
         `https://notehub-public.goit.study/api/notes/${id}`,
         {
@@ -70,19 +68,24 @@ export default function NoteList({
       if (!response.ok) {
         throw new Error("Failed to delete note");
       }
-    } catch (error) {
-      console.error("Error deleting note:", error);
-    }
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["notes", searchTerm]);
+    },
+  });
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error occurred: {error.message}</div>;
-  if (!notes || notes.length === 0) return <div>No notes to display.</div>;
+  if (!fetchedNotes || fetchedNotes.length === 0)
+    return <div>No notes to display.</div>;
 
-  setPageCount(Math.ceil(notes.length / notesPerPage));
+  setPageCount(Math.ceil(fetchedNotes.length / notesPerPage));
 
   const startIndex = currentPage * notesPerPage;
-  const selectedNotes = notes.slice(startIndex, startIndex + notesPerPage);
+  const selectedNotes = fetchedNotes.slice(
+    startIndex,
+    startIndex + notesPerPage
+  );
 
   return (
     <ul className={css.list}>
@@ -94,7 +97,7 @@ export default function NoteList({
             <span className={css.tag}>{note.tag}</span>
             <button
               className={css.button}
-              onClick={() => handleDelete(note.id)}
+              onClick={() => mutation.mutate(note.id)}
             >
               Delete
             </button>

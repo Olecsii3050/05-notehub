@@ -1,6 +1,6 @@
 import axios from "axios";
+import type { Note } from "../types/note";
 import type {
-  Note,
   FetchNotesResponse,
   CreateNoteResponse,
   DeleteNoteResponse,
@@ -20,7 +20,7 @@ export const fetchNotes = async (
   page: number,
   searchTerm: string
 ): Promise<FetchNotesResponse> => {
-  const response = await axiosInstance.get("", {
+  const response = await axiosInstance.get<FetchNotesResponse>("", {
     params: {
       page,
       search: searchTerm,
@@ -32,11 +32,11 @@ export const fetchNotes = async (
 export const createNote = async (
   noteData: Omit<Note, "id">
 ): Promise<CreateNoteResponse> => {
-  const response = await axiosInstance.post("", noteData);
+  const response = await axiosInstance.post<CreateNoteResponse>("", noteData);
   return response.data;
 };
 
-export const deleteNote = async (id: string): Promise<DeleteNoteResponse> => {
-  const response = await axiosInstance.delete(`/${id}`);
+export const deleteNote = async (id: number): Promise<DeleteNoteResponse> => {
+  const response = await axiosInstance.delete<DeleteNoteResponse>(`/${id}`);
   return response.data;
 };
