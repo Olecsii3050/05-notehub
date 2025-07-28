@@ -36,7 +36,7 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageCount, setPageCount] = useState(0);
+  const [pageCount] = useState(0);
   const notesPerPage = 10;
 
   const {
@@ -63,26 +63,13 @@ const App = () => {
     setIsModalOpen(false);
   };
 
-  const handleCreateNote = (values: {
-    title: string;
-    content: string;
-    tag: string;
-  }) => {
-    console.log("New note:", values);
-  };
-
-  const handlePageChange = (selectedPage: number) => {
-    setCurrentPage(selectedPage);
-    console.log("Selected page:", selectedPage);
-  };
-
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox onSearch={setSearchTerm} />
         <Pagination
           pageCount={pageCount}
-          onPageChange={handlePageChange}
+          onPageChange={setCurrentPage}
           currentPage={currentPage}
         />
         <button className={css.button} onClick={handleOpenModal}>
@@ -91,16 +78,10 @@ const App = () => {
       </header>
       {isLoading && <div>Loading notes...</div>}
       {error && <div>Error occurred: {error.message}</div>}
-      <NoteList
-        notes={notes}
-        searchTerm={searchTerm}
-        currentPage={currentPage}
-        notesPerPage={notesPerPage}
-        setPageCount={setPageCount}
-      />
+      {notes.length > 0 && <NoteList notes={notes} />}
       {isModalOpen && (
         <Modal onClose={handleCloseModal}>
-          <NoteForm onClose={handleCloseModal} onSubmit={handleCreateNote} />
+          <NoteForm onClose={handleCloseModal} />
         </Modal>
       )}
     </div>

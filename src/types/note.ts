@@ -1,4 +1,4 @@
-export interface Note {
+/*export interface Note {
   id: number;
   title: string;
   content: string;
@@ -18,4 +18,14 @@ export interface CreateNoteResponse {
 
 export interface DeleteNoteResponse {
   message: string;
+}
+*/
+// note.ts
+export interface Note {
+  id: number;
+  title: string;
+  content: string;
+  tag: string;
+  createdAt: string;
+  updatedAt: string;
 }
