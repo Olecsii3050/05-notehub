@@ -1,12 +1,10 @@
-/*import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import css from "./NoteForm.module.css";
-import { createNote } from "../../services/noteService";
 
 interface NoteFormProps {
   onClose: () => void;
-  onSubmit: (values: { title: string; content: string; tag: string }) => void;
 }
 
 interface FormValues {
@@ -15,12 +13,30 @@ interface FormValues {
   tag: string;
 }
 
-export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation(createNote, {
+  const mutation = useMutation<void, Error, FormValues>({
+    mutationFn: async (values) => {
+      const response = await fetch(
+        "https://notehub-public.goit.study/api/notes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`,
+          },
+          body: JSON.stringify(values),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create note");
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(["notes"]);
+      queryClient.invalidateQueries();
+      onClose();
     },
   });
 
@@ -43,8 +59,6 @@ export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
 
   const handleSubmit = async (values: FormValues) => {
     await mutation.mutateAsync(values);
-    onSubmit(values);
-    onClose();
   };
 
   return (
@@ -93,146 +107,10 @@ export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
             className={css.submitButton}
             disabled={mutation.isLoading}
           >
-            {mutation.isLoading ? "Creating..." : "Create note"}
+            Create note
           </button>
         </div>
       </Form>
-    </Formik>
-  );
-}
-
-
-// NoteForm.tsx
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import css from "./NoteForm.module.css";
-
-interface NoteFormProps {
-  onClose: () => void;
-}
-
-interface FormValues {
-  title: string;
-  content: string;
-  tag: string;
-}
-
-export default function NoteForm({ onClose }: NoteFormProps) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries();
-      onClose();
-    },
-  });
-
-  const validationSchema = Yup.object().shape({
-    title: Yup.string()
-      .min(3, "Title must be at least 3 characters long")
-      .max(50, "Title can be no more than 50 characters long")
-      .required("Required field"),
-    content: Yup.string().max(
-      500,
-      "Content can be no more than 500 characters long"
-    ),
-    tag: Yup.string()
-      .oneOf(
-        ["Todo", "Work", "Personal", "Meeting", "Shopping"],
-        "Select a valid tag"
-      )
-      .required("Required field"),
-  });
-
-  const handleSubmit = async (values: FormValues) => {
-    await mutation.mutateAsync(values);
-  };
-
-  return (
-    <Formik
-      initialValues={{ title: "", content: "", tag: "Todo" }}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-    >
-      <Form className={css.form}>{}</Form>
-    </Formik>
-  );
-}
-*/
-// NoteForm.tsx
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import css from "./NoteForm.module.css";
-
-interface NoteFormProps {
-  onClose: () => void;
-}
-
-interface FormValues {
-  title: string;
-  content: string;
-  tag: string;
-}
-
-export default function NoteForm({ onClose }: NoteFormProps) {
-  const queryClient = useQueryClient();
-
-  // Зміна: Вказано тип для мутації (FormValues)
-  const mutation = useMutation<void, Error, FormValues>({
-    mutationFn: async (values) => {
-      const response = await fetch(
-        "https://notehub-public.goit.study/api/notes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`,
-          },
-          body: JSON.stringify(values),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to create note");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
-      onClose();
-    },
-  });
-
-  const validationSchema = Yup.object().shape({
-    title: Yup.string()
-      .min(3, "Title must be at least 3 characters long")
-      .max(50, "Title can be no more than 50 characters long")
-      .required("Required field"),
-    content: Yup.string().max(
-      500,
-      "Content can be no more than 500 characters long"
-    ),
-    tag: Yup.string()
-      .oneOf(
-        ["Todo", "Work", "Personal", "Meeting", "Shopping"],
-        "Select a valid tag"
-      )
-      .required("Required field"),
-  });
-
-  const handleSubmit = async (values: FormValues) => {
-    // Зміна: Передача значень в мутацію
-    await mutation.mutateAsync(values);
-  };
-
-  return (
-    <Formik
-      initialValues={{ title: "", content: "", tag: "Todo" }}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-    >
-      <Form className={css.form}>{}</Form>
     </Formik>
   );
 }
