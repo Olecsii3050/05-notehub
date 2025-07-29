@@ -1,6 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import css from "./NoteList.module.css";
+
 import type { Note } from "../../types/note";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import css from "../NoteList/NoteList.module.css";
+import { deleteNote } from "../../services/noteService";
 
 interface NoteListProps {
   notes: Note[];
@@ -10,27 +12,9 @@ export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(
-        `https://notehub-public.goit.study/api/notes/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete note");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
-    },
+    mutationFn: deleteNote,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notes"] }),
   });
-
-  if (notes.length === 0) return <div>No notes to display.</div>;
 
   return (
     <ul className={css.list}>
@@ -52,3 +36,4 @@ export default function NoteList({ notes }: NoteListProps) {
     </ul>
   );
 }
+
